@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Minecraft ランチャー</title>
+<style>
+  :root {
+    --bg-dark: #1e1e1e;
+    --bg-sidebar: #2b2b2b;
+    --bg-card: #2a2a2a;
+    --bg-hover: #3a3a3a;
+    --accent: #4caf50;
+    --accent-hover: #43a047;
+    --text: #e0e0e0;
+    --text-dim: #999;
+    --border: #3a3a3a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    font-size: 14px;
+  }
+
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--bg-sidebar);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .nav-item:hover { background: var(--bg-hover); color: var(--text); }
+  .nav-item.active { background: var(--bg-hover); color: #fff; border-left: 3px solid var(--accent); padding-left: 13px; }
+  .nav-item .icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+  .sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-dim); }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+
+  .top-bar {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-dark);
+  }
+
+  .top-bar h1 { font-size: 16px; font-weight: 600; }
+  .top-bar .actions { display: flex; gap: 8px; }
+
+  .top-bar .actions button {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .top-bar .actions button:hover { background: var(--bg-hover); }
+
+  .page { display: none; flex: 1; padding: 24px; }
+  .page.active { display: block; }
+
+  .home-content {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .install-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .install-panel-header { padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  .install-list { list-style: none; }
+
+  .install-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #333;
+  }
+
+  .install-item:last-child { border-bottom: none; }
+  .install-item:hover { background: var(--bg-hover); }
+  .install-item.selected { background: #333; border-left: 3px solid var(--accent); padding-left: 13px; }
+
+  .install-icon { width: 40px; height: 40px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .install-icon.vanilla { background: linear-gradient(135deg, #5b8c3e, #3d6b2a); }
+  .install-icon.fabric { background: linear-gradient(135deg, #4a6fa5, #2d4a7a); }
+  .install-icon.forge { background: linear-gradient(135deg, #8b4513, #5c2d0e); }
+
+  .install-info { flex: 1; min-width: 0; }
+  .install-info .name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .install-info .version { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  .play-panel { display: flex; flex-direction: column; gap: 20px; }
+
+  .game-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .game-card .game-icon { width: 64px; height: 64px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+  .game-card .game-info { flex: 1; }
+  .game-card .game-name { font-size: 16px; font-weight: 600; }
+  .game-card .game-sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .game-card .game-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--accent); margin-top: 6px; }
+  .game-card .game-status .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+
+  .version-row { display: flex; align-items: center; gap: 12px; }
+  .version-row label { font-size: 13px; color: var(--text-dim); }
+
+  .version-row select {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    min-width: 220px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .version-row select:focus { outline: none; border-color: var(--accent); }
+
+  /* バージョン説明 */
+  .version-desc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    transition: opacity 0.2s;
+  }
+
+  .version-desc .desc-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .play-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.5px;
+  }
+
+  .play-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+  .play-btn:active { transform: translateY(0); }
+  .play-btn.loading { background: #555; cursor: wait; }
+
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .setting-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; font-size: 12px; cursor: pointer; transition: border-color 0.2s; }
+  .setting-item:hover { border-color: #555; }
+  .setting-item .label { color: var(--text-dim); font-size: 11px; margin-bottom: 4px; }
+  .setting-item .value { color: var(--text); font-weight: 500; }
+
+  .news-section { grid-column: 1 / -1; margin-top: 8px; }
+  .news-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+  .news-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .news-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+  .news-card:hover { border-color: #555; transform: translateY(-2px); }
+  .news-card .thumb { height: 120px; background: linear-gradient(135deg, #2d4a2a, #1a3a1a); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+  .news-card .thumb.t2 { background: linear-gradient(135deg, #2a3a5c, #1a2a4a); }
+  .news-card .thumb.t3 { background: linear-gradient(135deg, #5c3a2a, #4a2a1a); }
+  .news-card .body { padding: 12px 14px; }
+  .news-card .tag { display: inline-block; font-size: 10px; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 3px; margin-bottom: 8px; font-weight: 600; }
+  .news-card .tag.blue { background: #4a6fa5; }
+  .news-card .tag.orange { background: #c77b30; }
+  .news-card .title { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 6px; }
+  .news-card .date { font-size: 11px; color: var(--text-dim); }
+
+  .page-hero {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .page-hero .hero-icon {
+    width: 80px; height: 80px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; flex-shrink: 0;
+  }
+
+  .page-hero .hero-text h2 { font-size: 20px; margin-bottom: 8px; }
+  .page-hero .hero-text p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+  .page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+  .page-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+
+  .page-card:hover { border-color: #555; transform: translateY(-2px); }
+  .page-card .card-icon { font-size: 28px; margin-bottom: 10px; }
+  .page-card .card-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .page-card .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    min-width: 420px;
+    max-width: 560px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalIn 0.2s ease;
+  }
+
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .modal h2 { font-size: 16px; margin-bottom: 16px; }
+  .modal p { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 12px; }
+  .modal-close { display: block; margin-top: 16px; padding: 10px 24px; background: var(--accent); color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+  .modal-close:hover { background: var(--accent-hover); }
+
+  .modal input[type="text"],
+  .modal input[type="number"],
+  .modal select {
+    width: 100%;
+    background: #333;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .modal input[type="range"] { width: 100%; margin: 12px 0; accent-color: var(--accent); }
+  .modal .form-label { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; display: block; }
+  .modal .form-row { display: flex; gap: 8px; margin-top: 12px; }
+  .modal .form-row button { flex: 1; padding: 10px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+  .modal .btn-primary { background: var(--accent); color: #fff; }
+  .modal .btn-primary:hover { background: var(--accent-hover); }
+  .modal .btn-secondary { background: #444; color: var(--text); }
+  .modal .btn-secondary:hover { background: #555; }
+
+  .skin-grid { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+  .skin-option {
+    width: 56px; height: 56px;
+    background: #444; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, transform 0.1s;
+  }
+  .skin-option:hover { transform: scale(1.1); }
+  .skin-option.selected { border-color: var(--accent); }
+
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid #333;
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-row .t-label { font-size: 13px; }
+  .toggle-row .t-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .toggle {
+    width: 44px; height: 24px; background: #555; border-radius: 12px;
+    position: relative; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; background: #fff; border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(20px); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #333;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--text);
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-dark); }
+  ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+</style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="sidebar-header">Nova Launcher</div>
+
+    <div class="sidebar-nav">
+      <div class="nav-item active" data-page="home">
+        <span class="icon">🏠</span> ホーム
+      </div>
+      <div class="nav-item" data-page="bedrock">
+        <span class="icon">📦</span> Launcher情報
+      </div>
+    </div>
+
+    <div class="sidebar-footer">ランチャー 1.0</div>
+  </div>
+
+  <div class="main">
+    <div class="top-bar">
+      <h1 id="pageTitle">ホーム</h1>
+      <div class="actions">
+        全てのデバイスで無料のMinecraft体験を。
+      </div>
+    </div>
+
+    <div class="page active" id="page-home">
+      <div class="home-content">
+        <div class="install-panel">
+          <div class="install-panel-header">インストール</div>
+          <ul class="install-list">
+            <li class="install-item selected" data-name="バニラ" data-icon="vanilla" data-type="vanilla">
+              <div class="install-icon vanilla">⛏️</div>
+              <div class="install-info">
+                <div class="name">バニラ</div>
+                <div class="version">基礎的なMinecraftのコピー</div>
+              </div>
+            </li>
+            <li class="install-item" data-name="クライアント" data-icon="Client" data-type="Client">
+              <div class="install-icon forge">🔥</div>
+              <div class="install-info">
+                <div class="name">クライアント</div>
+                <div class="version">Eaglercraftをさらに楽しく</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="play-panel">
+          <div class="game-card">
+            <div class="game-icon" id="gameIcon">⛏️</div>
+            <div class="game-info">
+              <div class="game-name" id="gameName">Eaglercraft: Java Edition</div>
+              <div class="game-sub" id="gameSub">インストール: バニラ</div>
+              <div class="game-status"><span class="dot"></span> <span id="gameStatus">最新状態</span></div>
+            </div>
+          </div>
+
+          <div class="version-row">
+            <label>バージョン:</label>
+            <select id="versionSelect"></select>
+          </div>
+
+          <div class="version-desc" id="versionDesc">
+            <div class="desc-title" id="descTitle"></div>
+            <div id="descBody"></div>
+          </div>
+
+          <button class="play-btn" id="playBtn">プレイ</button>
+          ヒント：ダッシュキーは最初から「R」になっていないものが多いです。Options→Controls...→Key Binds...→SprintをRにする
+        </div>
+
+        
+      </div>
+    </div>
+
+    <div class="page" id="page-bedrock">
+      <div class="page-hero">
+        <div class="hero-icon" style="background:linear-gradient(135deg,#3a6b8c,#2a4a6a);">📦</div>
+        <div class="hero-text">
+          <h2>Minecraft for Windows</h2>
+          <p>すべてのデバイスでMinecraftをプレイ。PC、コンソール、モバイルでクロスプラットフォームマルチプレイヤーを楽しもう。</p>
+        </div>
+      </div>
+      <p><strong>1. — 銅の時代</strong><br>2025年9月12日</p>
+        <p>銅ゴーレムと新しい銅ツールを追加。クロスプラットフォーム対応の改善も。</p>
+        <hr style="border-color:#444; margin:12px 0;">
+        <p><strong>1.21.30 — アップデート</strong><br>2025年8月20日</p>
+        <p>パフォーマンス改善とバグ修正。モバイル対応の最適化。</p>
+        <hr style="border-color:#444; margin:12px 0;">
+        <p><strong>1.21.20 — アップデート</strong><br>2025年7月15日</p>
+        <p>新しいバイオーム「乾燥渓谷」を追加。新規モブ2種。</p>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2 id="modalTitle">タイトル</h2>
+      <div id="modalBody"></div>
+      <button class="modal-close" id="modalClose">閉じる</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const installVersions = {
+      vanilla: [
+        { value: '26.2', label: '26.2', desc: '最新のEaglercraft。サルファーキューブなどもあり、LAN公開が可能。' },
+        { value: '1.21.11', label: '1.21.11', desc: '槍のEaglercraft。実況で見慣れた型であり、LAN公開が可能。' },
+        { value: '1.20.6', label: '1.20.6', desc: '桜のEaglercraft。パチモンではないy以下もある型である。ラグい。LAN公開が可能。' },
+        { value: '1.14.4', label: '1.14.4', desc: '村のEaglercraft。書見台などの職業ブロックの追加。LAN公開や日本語設定が可能。' },
+        { value: '1.13.2', label: '1.13.2', desc: '海のEaglercraft。水に魚が泳ぎ始めるようになる。ラグい。LAN公開が可能。' },
+        { value: '1.12.2', label: '1.12.2', desc: '今までの最新。アスレチックが最も入っている型であり、LAN公開も日本語設定もできない。' },
+        { value: '1.8.8', label: '1.8.8', desc: '最初のEaglercraft。最も安定して遊べる型であり、LAN公開や日本語設定が可能。' }      ],
+      Client: [
+        { value: 'aero', label: 'aero Client', desc: '1.12のクライアント。MODとして様々なサブ機能（HitBoxなど）を追加できる。' },
+        { value: 'astra', label: 'Astra Client', desc: '1.6,0のクライアント。サクサク動く。' }
+      ] 
+    };
+<!-- { value: '1.8.8', label: '1.8.8', desc: '最初のEaglercraft。最も安定して遊べる型であり、LAN公開や日本語設定が可能。' }, -->
+    const versionURLs = {
+      vanilla: {
+        '26.2': 'https://www.minecraft.net/en-us/article/minecraft-1-21-4',
+        '1.21.11': 'https://www.minecraft.net/en-us/article/minecraft-1-21-4',
+        '1.20.6': 'https://www.minecraft.net/en-us/article/minecraft-1-21-4',
+        '1.14.4': 'https://www.minecraft.net/en-us/article/minecraft-1-21-3',
+        '1.13.2': 'https://www.minecraft.net/en-us/article/minecraft-1-21-2',
+        '1.12.2': 'https://www.minecraft.net/en-us/article/minecraft-1-21-1',
+        '1.8.8': 'https://www.minecraft.net/en-us/article/snapshot-25w35a'
+      },
+      forge: {
+        'aero': 'https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.4.html',
+        'astra': 'https://files.minecraftforge.net/net/minecraftforge/forge/index_1.18.2.html'
+      }
+    };
+
+    const state = {
+      ram: 4096,
+      directory: 'C:\\Users\\...\\AppData\\Roaming\\.minecraft',
+      java: 'Java 21（同梱）',
+      jvm: '-XX:+UseG1GC',
+      skin: '🧑',
+      bedrockSettings: { graphics: '高', crossplay: true, cloudSave: true, experimental: false }
+    };
+
+    let selectedInstall = { name: 'バニラ', icon: 'vanilla', type: 'vanilla' };
+    let currentPage = 'home';
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    const overlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    function openModal(title, html) {
+      modalTitle.textContent = title;
+      modalBody.innerHTML = html;
+      overlay.classList.add('show');
+      bindModalEvents();
+    }
+
+    function closeModal() { overlay.classList.remove('show'); }
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    const navItems = document.querySelectorAll('.nav-item');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageTitles = { home: 'ホーム', bedrock: 'Minecraft for Windows' };
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        navItems.forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        currentPage = item.dataset.page;
+        pageTitle.textContent = pageTitles[currentPage];
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + currentPage).classList.add('active');
+        showToast(`切り替え: ${pageTitles[currentPage]}`);
+      });
+    });
+
+    const versionSelect = document.getElementById('versionSelect');
+    const descTitle = document.getElementById('descTitle');
+    const descBody = document.getElementById('descBody');
+
+    function populateVersions(type, defaultVer) {
+      const versions = installVersions[type] || installVersions.vanilla;
+      versionSelect.innerHTML = versions.map(v =>
+        `<option value="${v.value}" ${v.value === defaultVer ? 'selected' : ''}>${v.label}</option>`
+      ).join('');
+      updateVersionDesc(type, defaultVer);
+    }
+
+    function updateVersionDesc(type, ver) {
+      const versions = installVersions[type] || [];
+      const found = versions.find(v => v.value === ver);
+      if (found) {
+        descTitle.textContent = found.label;
+        descBody.textContent = found.desc;
+      } else {
+        descTitle.textContent = ver;
+        descBody.textContent = '説明なし。';
+      }
+    }
+
+    populateVersions('vanilla', '26.2');
+
+    const installItems = document.querySelectorAll('.install-item');
+    const gameIcon = document.getElementById('gameIcon');
+    const gameName = document.getElementById('gameName');
+    const gameSub = document.getElementById('gameSub');
+    const gameStatus = document.getElementById('gameStatus');
+    const iconMap = { vanilla: '⛏️', fabric: '🧵', Client: '🔥' };
+    const nameMap = { vanilla: 'Eaglercraft: Java Edition', Client: 'Eaglercraft: Client' };
+
+    installItems.forEach(item => {
+      item.addEventListener('click', () => {
+        installItems.forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        selectedInstall = { name: item.dataset.name, icon: item.dataset.icon, type: item.dataset.type };
+        gameIcon.textContent = iconMap[selectedInstall.icon] || '⛏️';
+        gameName.textContent = nameMap[selectedInstall.type] || 'Minecraft: Java Edition';
+        gameSub.textContent = `インストール: ${selectedInstall.name}`;
+        gameStatus.textContent = '最新状態';
+
+        const firstVer = (installVersions[selectedInstall.type] || [])[0];
+        populateVersions(selectedInstall.type, firstVer ? firstVer.value : '26.2');
+
+        showToast(`選択: ${selectedInstall.name}（${versionSelect.value}）`);
+      });
+    });
+
+    const playBtn = document.getElementById('playBtn');
+    playBtn.addEventListener('click', () => {
+      if (playBtn.classList.contains('loading')) return;
+      const type = selectedInstall.type;
+      const ver = versionSelect.value;
+      const url = (versionURLs[type] || {})[ver];
+
+      playBtn.classList.add('loading');
+      playBtn.textContent = '起動中...';
+      gameStatus.textContent = '起動中...';
+
+      setTimeout(() => {
+        playBtn.classList.remove('loading');
+        playBtn.textContent = 'プレイ';
+        gameStatus.textContent = '最新状態';
+
+        if (url) {
+          showToast(`${type} ${ver} → 開く`);
+          window.open(url, '_blank');
+        } else {
+          showToast(`「${type}」のバージョン ${ver} のURLが未設定です`);
+        }
+      }, 1500);
+    });
+
+    const newsData = {
+      '1': { title: 'Minecraft 1.21.4 — 銅の時代アップデート', body: '銅ゴーレム、新ツール、再設計された鍾乳洞エコシステム。銅の村で村民と交易しよう。' },
+      '2': { title: 'Minecraft Live 2025', body: 'サプライズ発表、開発者パネル、次回アップデートの予告を含むライブイベントのハイライト。' },
+      '3': { title: '1.21.4 パッチノート', body: 'バグ修正: 銅ゴーレムのパスファインディング、ネザーでの鍾乳石成長、チャンクロードパフォーマンス、197件以上の追加修正。' }
+    };
+
+    document.querySelectorAll('.news-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const d = newsData[card.dataset.news];
+        openModal(d.title, `<p>${d.body}</p>`);
+      });
+    });
+
+    function bindModalEvents() {
+      document.querySelectorAll('.skin-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          opt.parentElement.querySelectorAll('.skin-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+        });
+      });
+
+      document.querySelectorAll('.toggle').forEach(tgl => {
+        tgl.addEventListener('click', () => {
+          tgl.classList.toggle('on');
+          const key = tgl.dataset.key;
+          state.bedrockSettings[key] = tgl.classList.contains('on');
+          showToast(`${tgl.dataset.label}: ${tgl.classList.contains('on') ? 'ON' : 'OFF'}`);
+        });
+      });
+    }
+
+  </script>
+
+</body>
+</html>   
