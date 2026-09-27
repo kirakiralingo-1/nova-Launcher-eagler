@@ -388,15 +388,13 @@
       </div>
     </div>
 
-    <div class="sidebar-footer">ランチャー 1.0</div>
+    <div class="sidebar-footer">ランチャー 2.2.2114</div>
   </div>
 
   <div class="main">
     <div class="top-bar">
       <h1 id="pageTitle">ホーム</h1>
-      <div class="actions">
-        全てのデバイスで無料のMinecraft体験を。
-      </div>
+      全てのデバイスで無料のMinecraftを。
     </div>
 
     <div class="page active" id="page-home">
@@ -408,14 +406,14 @@
               <div class="install-icon vanilla">⛏️</div>
               <div class="install-info">
                 <div class="name">バニラ</div>
-                <div class="version">基礎的なMinecraftのコピー</div>
+                <div class="version">基礎的なマインクラフト</div>
               </div>
             </li>
-            <li class="install-item" data-name="クライアント" data-icon="Client" data-type="Client">
-              <div class="install-icon forge">🔥</div>
+            <li class="install-item" data-name="Client" data-icon="fabric" data-type="Client">
+              <div class="install-icon fabric">🧵</div>
               <div class="install-info">
                 <div class="name">クライアント</div>
-                <div class="version">Eaglercraftをさらに楽しく</div>
+                <div class="version">様々なマインクラフト</div>
               </div>
             </li>
           </ul>
@@ -425,7 +423,7 @@
           <div class="game-card">
             <div class="game-icon" id="gameIcon">⛏️</div>
             <div class="game-info">
-              <div class="game-name" id="gameName">Eaglercraft: Java Edition</div>
+              <div class="game-name" id="gameName">Minecraft: Java Edition</div>
               <div class="game-sub" id="gameSub">インストール: バニラ</div>
               <div class="game-status"><span class="dot"></span> <span id="gameStatus">最新状態</span></div>
             </div>
@@ -436,16 +434,14 @@
             <select id="versionSelect"></select>
           </div>
 
+          <!-- バージョン説明 -->
           <div class="version-desc" id="versionDesc">
             <div class="desc-title" id="descTitle"></div>
             <div id="descBody"></div>
           </div>
 
           <button class="play-btn" id="playBtn">プレイ</button>
-          ヒント：ダッシュキーは最初から「R」になっていないものが多いです。Options→Controls...→Key Binds...→SprintをRにする
         </div>
-
-        
       </div>
     </div>
 
@@ -453,11 +449,11 @@
       <div class="page-hero">
         <div class="hero-icon" style="background:linear-gradient(135deg,#3a6b8c,#2a4a6a);">📦</div>
         <div class="hero-text">
-          <h2>Minecraft for Windows</h2>
+          <h2>Launcher情報</h2>
           <p>すべてのデバイスでMinecraftをプレイ。PC、コンソール、モバイルでクロスプラットフォームマルチプレイヤーを楽しもう。</p>
         </div>
       </div>
-      <p><strong>1. — 銅の時代</strong><br>2025年9月12日</p>
+      <p><strong>1.21.40 — 銅の時代</strong><br>2025年9月12日</p>
         <p>銅ゴーレムと新しい銅ツールを追加。クロスプラットフォーム対応の改善も。</p>
         <hr style="border-color:#444; margin:12px 0;">
         <p><strong>1.21.30 — アップデート</strong><br>2025年8月20日</p>
@@ -479,6 +475,7 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    // ===== インストール別バージョン（説明付き） =====
     const installVersions = {
       vanilla: [
         { value: '26.2', label: '26.2', desc: '最新のEaglercraft。サルファーキューブなどもあり、LAN公開が可能。' },
@@ -493,7 +490,8 @@
         { value: 'astra', label: 'Astra Client', desc: '1.6,0のクライアント。サクサク動く。' }
       ] 
     };
-<!-- { value: '1.8.8', label: '1.8.8', desc: '最初のEaglercraft。最も安定して遊べる型であり、LAN公開や日本語設定が可能。' }, -->
+
+    // ===== インストール別・バージョン別URL =====
     const versionURLs = {
       vanilla: {
         '26.2': 'Vanilla/26.2.html',
@@ -504,7 +502,7 @@
         '1.12.2': 'Vanilla/1.12.2-wasm.html',
         '1.8.8': 'Vanilla/1.8.8-wasm.html'
       },
-      forge: {
+      Client: {
         'aero': 'Clients/Aero Client.html',
         'astra': 'Clients/Astra Client.html'
       }
@@ -547,7 +545,7 @@
 
     const navItems = document.querySelectorAll('.nav-item');
     const pageTitle = document.getElementById('pageTitle');
-    const pageTitles = { home: 'ホーム', bedrock: 'Minecraft for Windows' };
+    const pageTitles = { home: 'ホーム', bedrock: 'Launcher情報' };
 
     navItems.forEach(item => {
       item.addEventListener('click', () => {
@@ -592,8 +590,8 @@
     const gameName = document.getElementById('gameName');
     const gameSub = document.getElementById('gameSub');
     const gameStatus = document.getElementById('gameStatus');
-    const iconMap = { vanilla: '⛏️', fabric: '🧵', Client: '🔥' };
-    const nameMap = { vanilla: 'Eaglercraft: Java Edition', Client: 'Eaglercraft: Client' };
+    const iconMap = { vanilla: '⛏️', fabric: '🧵', forge: '🔥' };
+    const nameMap = { vanilla: 'Minecraft: Java Edition', fabric: 'Minecraft: Fabric', forge: 'Minecraft: Forge' };
 
     installItems.forEach(item => {
       item.addEventListener('click', () => {
@@ -606,10 +604,16 @@
         gameStatus.textContent = '最新状態';
 
         const firstVer = (installVersions[selectedInstall.type] || [])[0];
-        populateVersions(selectedInstall.type, firstVer ? firstVer.value : '26.2');
+        populateVersions(selectedInstall.type, firstVer ? firstVer.value : '1.21.4');
 
         showToast(`選択: ${selectedInstall.name}（${versionSelect.value}）`);
       });
+    });
+
+    versionSelect.addEventListener('change', (e) => {
+      gameStatus.textContent = e.target.value.startsWith('25w') ? 'スナップショット' : '最新状態';
+      updateVersionDesc(selectedInstall.type, e.target.value);
+      showToast(`バージョン: ${e.target.value}`);
     });
 
     const playBtn = document.getElementById('playBtn');
@@ -636,6 +640,7 @@
         }
       }, 1500);
     });
+
 
     const newsData = {
       '1': { title: 'Minecraft 1.21.4 — 銅の時代アップデート', body: '銅ゴーレム、新ツール、再設計された鍾乳洞エコシステム。銅の村で村民と交易しよう。' },
