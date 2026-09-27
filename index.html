@@ -1,1153 +1,674 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0a0a0a" />
-  <meta name="description" content="EaglerHub is a clean, static launcher for EaglerCraft clients and vanilla WASM builds, hosted on GitHub Pages. Pick a game and play — made by mr blob." />
-  <title>Eag · by mr blob</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23000'/%3E%3Ctext%20x='16'%20y='23'%20text-anchor='middle'%20font-family='Segoe%20UI,sans-serif'%20font-size='20'%20font-weight='700'%20fill='%23fff'%3EE%3C/text%3E%3C/svg%3E" />
-  <style>
-:root {
-  --bg: #0a0a0a;
-  --surface: #111111;
-  --surface-2: #171717;
-  --border: #262626;
-  --border-strong: #3d3d3d;
-  --text: #f2f2f2;
-  --muted: #909090;
-  --accent: #ffffff;
-  --accent-ink: #000000;
-  --radius: 4px;
-  --font: "Segoe UI", Tahoma, sans-serif;
-  --ease: cubic-bezier(0.33, 1, 0.68, 1);
-  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
-  --t-fast: 0.18s;
-  --t-mid: 0.32s;
-  --t-slow: 0.42s;
-  --t-stagger: 22ms;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
-body {
-  margin: 0;
-  min-height: 100%;
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  border: 0;
-}
-
-.app {
-  width: min(1100px, calc(100% - 24px));
-  margin: 0 auto;
-  padding: 24px 0 40px;
-  animation: app-in var(--t-slow) var(--ease-soft) both;
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid var(--border);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand-text h1 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.brand-sub {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 3px 0 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.ind-dot {
-  flex-shrink: 0;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--muted);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
-  transition: background var(--t-mid) var(--ease), transform var(--t-fast) var(--ease);
-}
-
-.ind-dot--local {
-  background: var(--accent);
-}
-
-.ind-dot--all {
-  background: #ffffff;
-}
-
-.ind-dot--client {
-  background: #b9b9b9;
-}
-
-.ind-dot--vanilla {
-  background: #6f6f6f;
-}
-
-.ind-dot--ok {
-  background: #ffffff;
-}
-
-.ind-dot--warn {
-  background: transparent;
-  border: 1.5px solid #ffffff;
-}
-
-.ind-dot--muted {
-  background: #4a4a4a;
-  box-shadow: none;
-}
-
-.search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: min(280px, 100%);
-  padding: 0 10px;
-  color: var(--muted);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  transition:
-    border-color var(--t-mid) var(--ease),
-    background-color var(--t-mid) var(--ease);
-}
-
-.search:focus-within {
-  border-color: var(--border-strong);
-  background-color: #161616;
-}
-
-.search.has-filter {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28);
-}
-
-.search input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  height: 32px;
-}
-
-.search input::placeholder {
-  color: #6f6f6f;
-}
-
-.toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.tabs {
-  display: flex;
-  gap: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.tab,
-.play {
-  font: inherit;
-  cursor: pointer;
-}
-
-.tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 0;
-  border-right: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  padding: 6px 14px;
-  transition:
-    background var(--t-mid) var(--ease),
-    color var(--t-mid) var(--ease);
-}
-
-.tab-count {
-  min-width: 1.25rem;
-  padding: 0 5px;
-  border-radius: 10px;
-  background: var(--bg);
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-  line-height: 1.35;
-}
-
-.tab.is-active .tab-count {
-  background: rgba(0, 0, 0, 0.18);
-  color: var(--accent-ink);
-}
-
-.tab:last-child {
-  border-right: 0;
-}
-
-.tab.is-active {
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-weight: 600;
-}
-
-.tab:focus-visible,
-.ghost:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-.launch-note {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 10px 12px;
-  max-width: 380px;
-}
-
-.launch-note-label {
-  margin: 0 0 4px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.launch-note-text {
-  margin: 0;
-  color: var(--text);
-  font-size: 12px;
-}
-
-.indicator-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-  padding: 8px 10px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  min-height: 38px;
-  align-items: center;
-  animation: slide-fade-in var(--t-mid) var(--ease-soft) both;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  font-size: 11px;
-  line-height: 1.35;
-  transition:
-    border-color var(--t-mid) var(--ease),
-    background var(--t-mid) var(--ease);
-}
-
-.chip-label {
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.chip-value {
-  color: var(--text);
-  font-weight: 600;
-  max-width: 14rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chip--accent {
-  border-color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.chip--ok {
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.chip--muted .chip-value {
-  color: var(--muted);
-  font-weight: 500;
-}
-
-.chip--client {
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-.chip--client .chip-value {
-  color: #dcdcdc;
-}
-
-.chip--vanilla {
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-.chip--vanilla .chip-value {
-  color: #a8a8a8;
-}
-
-.legend {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 8px 0 0;
-  border-top: 1px solid var(--border);
-  display: grid;
-  gap: 4px;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.legend li {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.status {
-  margin: 0 0 12px;
-  color: var(--muted);
-  font-size: 12px;
-  transition: opacity var(--t-mid) var(--ease);
-}
-
-.status.is-updating {
-  opacity: 0.45;
-}
-
-.workspace {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  gap: 16px;
-  align-items: start;
-}
-
-.packs {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 12px;
-}
-
-.packs-title {
-  margin: 0 0 8px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.side-note {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.pack-list {
-  display: grid;
-  gap: 6px;
-  margin-top: 10px;
-}
-
-.pack {
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: inherit;
-  border-radius: var(--radius);
-  padding: 8px 10px;
-  text-decoration: none;
-  display: block;
-  animation: slide-fade-in var(--t-slow) var(--ease-soft) both;
-  animation-delay: calc(var(--n, 0) * var(--t-stagger));
-  transition:
-    border-color var(--t-mid) var(--ease),
-    background var(--t-mid) var(--ease),
-    transform var(--t-fast) var(--ease),
-    opacity var(--t-mid) var(--ease);
-  will-change: transform, opacity;
-}
-
-.pack:hover {
-  border-color: var(--border-strong);
-  background: #1d1d1d;
-  transform: translateY(-1px);
-}
-
-.pack:active {
-  transform: translateY(0);
-  transition-duration: 0.1s;
-}
-
-.pack:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-}
-
-.pack.is-incompatible {
-  opacity: 0.55;
-}
-
-.pack-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.pack-body {
-  min-width: 0;
-  flex: 1;
-}
-
-.pack strong {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.pack-meta,
-.pack-fit {
-  display: block;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.pack-fit {
-  font-size: 11px;
-}
-
-.pack .download-label {
-  display: block;
-  margin-top: 4px;
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: normal;
-}
-
-.pack:hover .download-label {
-  text-decoration: underline;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-}
-
-.card {
-  text-align: left;
-  color: inherit;
-  text-decoration: none;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 12px;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  cursor: pointer;
-  animation: slide-fade-in var(--t-slow) var(--ease-soft) both;
-  animation-delay: calc(var(--n, 0) * var(--t-stagger));
-  box-shadow: 0 0 0 0 transparent;
-  transition:
-    border-color var(--t-mid) var(--ease),
-    background var(--t-mid) var(--ease),
-    box-shadow var(--t-mid) var(--ease),
-    transform var(--t-mid) var(--ease);
-  will-change: transform, opacity;
-}
-
-.card:hover {
-  border-color: var(--border-strong);
-  background: #141414;
-  transform: translateY(-2px);
-}
-
-.card:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.card.is-selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
-  transform: translateY(-1px);
-}
-
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.card-flag {
-  align-self: flex-start;
-  padding: 1px 6px;
-  border-radius: 2px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  color: var(--accent-ink);
-  background: var(--accent);
-  line-height: 1.5;
-}
-
-.card.vanilla .badge {
-  color: var(--muted);
-}
-
-.size {
-  color: var(--muted);
-  font-size: 11px;
-}
-
-.card h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.meta {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.play {
-  display: inline-block;
-  margin-top: 8px;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius);
-  padding: 6px 10px;
-  background: var(--accent);
-  color: var(--accent-ink);
-  font-weight: 600;
-  font-size: 13px;
-  text-align: center;
-  transition:
-    background var(--t-mid) var(--ease),
-    border-color var(--t-mid) var(--ease),
-    transform var(--t-fast) var(--ease);
-}
-
-.card:hover .play {
-  background: #e0e0e0;
-  border-color: #e0e0e0;
-}
-
-.card:active .play {
-  transform: scale(0.98);
-}
-
-.empty {
-  color: var(--muted);
-  grid-column: 1 / -1;
-  padding: 24px 12px;
-  text-align: center;
-  font-size: 13px;
-}
-
-.foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 16px;
-  margin-top: 28px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.foot p {
-  margin: 0;
-}
-
-.foot strong {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.foot a {
-  color: var(--text);
-  text-decoration: none;
-  border-bottom: 1px solid var(--border-strong);
-  transition: border-color var(--t-mid) var(--ease);
-}
-
-.foot a:hover {
-  border-color: var(--text);
-}
-
-@keyframes app-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
+<meta charset="UTF-8">
+<title>Minecraft ランチャー</title>
+<style>
+  :root {
+    --bg-dark: #1e1e1e;
+    --bg-sidebar: #2b2b2b;
+    --bg-card: #2a2a2a;
+    --bg-hover: #3a3a3a;
+    --accent: #4caf50;
+    --accent-hover: #43a047;
+    --text: #e0e0e0;
+    --text-dim: #999;
+    --border: #3a3a3a;
   }
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-@keyframes slide-fade-in {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0);
-  }
-
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-@media (max-width: 900px) {
-  .workspace {
-    grid-template-columns: 1fr;
+  body {
+    font-family: 'Segoe UI', -apple-system, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+    font-size: 14px;
   }
 
-  .topbar {
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--bg-sidebar);
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
+    border-right: 1px solid var(--border);
   }
 
-  .search {
-    min-width: 0;
+  .sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  .launch-note {
-    max-width: none;
+  .sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 13px;
+    color: var(--text-dim);
   }
-}
-  </style>
+
+  .nav-item:hover { background: var(--bg-hover); color: var(--text); }
+  .nav-item.active { background: var(--bg-hover); color: #fff; border-left: 3px solid var(--accent); padding-left: 13px; }
+  .nav-item .icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+  .sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-dim); }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; }
+
+  .top-bar {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-dark);
+  }
+
+  .top-bar h1 { font-size: 16px; font-weight: 600; }
+  .top-bar .actions { display: flex; gap: 8px; }
+
+  .top-bar .actions button {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .top-bar .actions button:hover { background: var(--bg-hover); }
+
+  .page { display: none; flex: 1; padding: 24px; }
+  .page.active { display: block; }
+
+  .home-content {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .install-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .install-panel-header { padding: 12px 16px; font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+  .install-list { list-style: none; }
+
+  .install-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #333;
+  }
+
+  .install-item:last-child { border-bottom: none; }
+  .install-item:hover { background: var(--bg-hover); }
+  .install-item.selected { background: #333; border-left: 3px solid var(--accent); padding-left: 13px; }
+
+  .install-icon { width: 40px; height: 40px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .install-icon.vanilla { background: linear-gradient(135deg, #5b8c3e, #3d6b2a); }
+  .install-icon.fabric { background: linear-gradient(135deg, #4a6fa5, #2d4a7a); }
+  .install-icon.forge { background: linear-gradient(135deg, #8b4513, #5c2d0e); }
+
+  .install-info { flex: 1; min-width: 0; }
+  .install-info .name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .install-info .version { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  .play-panel { display: flex; flex-direction: column; gap: 20px; }
+
+  .game-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .game-card .game-icon { width: 64px; height: 64px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+  .game-card .game-info { flex: 1; }
+  .game-card .game-name { font-size: 16px; font-weight: 600; }
+  .game-card .game-sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .game-card .game-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--accent); margin-top: 6px; }
+  .game-card .game-status .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+
+  .version-row { display: flex; align-items: center; gap: 12px; }
+  .version-row label { font-size: 13px; color: var(--text-dim); }
+
+  .version-row select {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    min-width: 220px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .version-row select:focus { outline: none; border-color: var(--accent); }
+
+  /* バージョン説明 */
+  .version-desc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    transition: opacity 0.2s;
+  }
+
+  .version-desc .desc-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .play-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.5px;
+  }
+
+  .play-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+  .play-btn:active { transform: translateY(0); }
+  .play-btn.loading { background: #555; cursor: wait; }
+
+  .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .setting-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; font-size: 12px; cursor: pointer; transition: border-color 0.2s; }
+  .setting-item:hover { border-color: #555; }
+  .setting-item .label { color: var(--text-dim); font-size: 11px; margin-bottom: 4px; }
+  .setting-item .value { color: var(--text); font-weight: 500; }
+
+  .news-section { grid-column: 1 / -1; margin-top: 8px; }
+  .news-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+  .news-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .news-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s; }
+  .news-card:hover { border-color: #555; transform: translateY(-2px); }
+  .news-card .thumb { height: 120px; background: linear-gradient(135deg, #2d4a2a, #1a3a1a); display: flex; align-items: center; justify-content: center; font-size: 36px; }
+  .news-card .thumb.t2 { background: linear-gradient(135deg, #2a3a5c, #1a2a4a); }
+  .news-card .thumb.t3 { background: linear-gradient(135deg, #5c3a2a, #4a2a1a); }
+  .news-card .body { padding: 12px 14px; }
+  .news-card .tag { display: inline-block; font-size: 10px; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 3px; margin-bottom: 8px; font-weight: 600; }
+  .news-card .tag.blue { background: #4a6fa5; }
+  .news-card .tag.orange { background: #c77b30; }
+  .news-card .title { font-size: 13px; font-weight: 500; line-height: 1.4; margin-bottom: 6px; }
+  .news-card .date { font-size: 11px; color: var(--text-dim); }
+
+  .page-hero {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 32px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .page-hero .hero-icon {
+    width: 80px; height: 80px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; flex-shrink: 0;
+  }
+
+  .page-hero .hero-text h2 { font-size: 20px; margin-bottom: 8px; }
+  .page-hero .hero-text p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+  .page-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+  .page-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+  }
+
+  .page-card:hover { border-color: #555; transform: translateY(-2px); }
+  .page-card .card-icon { font-size: 28px; margin-bottom: 10px; }
+  .page-card .card-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .page-card .card-desc { font-size: 12px; color: var(--text-dim); line-height: 1.5; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    min-width: 420px;
+    max-width: 560px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalIn 0.2s ease;
+  }
+
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .modal h2 { font-size: 16px; margin-bottom: 16px; }
+  .modal p { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 12px; }
+  .modal-close { display: block; margin-top: 16px; padding: 10px 24px; background: var(--accent); color: #fff; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+  .modal-close:hover { background: var(--accent-hover); }
+
+  .modal input[type="text"],
+  .modal input[type="number"],
+  .modal select {
+    width: 100%;
+    background: #333;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .modal input[type="range"] { width: 100%; margin: 12px 0; accent-color: var(--accent); }
+  .modal .form-label { font-size: 12px; color: var(--text-dim); margin-bottom: 6px; display: block; }
+  .modal .form-row { display: flex; gap: 8px; margin-top: 12px; }
+  .modal .form-row button { flex: 1; padding: 10px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+  .modal .btn-primary { background: var(--accent); color: #fff; }
+  .modal .btn-primary:hover { background: var(--accent-hover); }
+  .modal .btn-secondary { background: #444; color: var(--text); }
+  .modal .btn-secondary:hover { background: #555; }
+
+  .skin-grid { display: flex; gap: 12px; margin: 16px 0; flex-wrap: wrap; }
+  .skin-option {
+    width: 56px; height: 56px;
+    background: #444; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, transform 0.1s;
+  }
+  .skin-option:hover { transform: scale(1.1); }
+  .skin-option.selected { border-color: var(--accent); }
+
+  .toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid #333;
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle-row .t-label { font-size: 13px; }
+  .toggle-row .t-desc { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .toggle {
+    width: 44px; height: 24px; background: #555; border-radius: 12px;
+    position: relative; cursor: pointer; transition: background 0.2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; background: #fff; border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggle.on::after { transform: translateX(20px); }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #333;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-size: 13px;
+    color: var(--text);
+    z-index: 2000;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+  }
+
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-dark); }
+  ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+</style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-text">
-          <h1>EaglerHub</h1>
-          <p class="brand-sub">
-            <span class="ind-dot ind-dot--local" aria-hidden="true"></span>
-            <span>By mr blob · every build opens straight from GitHub Pages</span>
-          </p>
-        </div>
+
+  <div class="sidebar">
+    <div class="sidebar-header">Nova Launcher</div>
+
+    <div class="sidebar-nav">
+      <div class="nav-item active" data-page="home">
+        <span class="icon">🏠</span> ホーム
       </div>
-
-      <label class="search" id="search-wrap">
-        <span class="sr-only">Search builds</span>
-        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-          <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14" />
-        </svg>
-        <input id="search" type="search" placeholder="Search clients and versions" autocomplete="off" />
-      </label>
-    </header>
-
-    <section class="toolbar">
-      <div class="tabs" role="tablist" aria-label="Catalog">
-        <button type="button" class="tab is-active" data-tab="all" role="tab" aria-selected="true">
-          <span class="ind-dot ind-dot--all" aria-hidden="true"></span>
-          All
-          <span class="tab-count" id="count-all">0</span>
-        </button>
-        <button type="button" class="tab" data-tab="client" role="tab" aria-selected="false">
-          <span class="ind-dot ind-dot--client" aria-hidden="true"></span>
-          Clients
-          <span class="tab-count" id="count-client">0</span>
-        </button>
-        <button type="button" class="tab" data-tab="vanilla" role="tab" aria-selected="false">
-          <span class="ind-dot ind-dot--vanilla" aria-hidden="true"></span>
-          Vanilla
-          <span class="tab-count" id="count-vanilla">0</span>
-        </button>
+      <div class="nav-item" data-page="bedrock">
+        <span class="icon">📦</span> Launcher情報
       </div>
-
-      <div class="launch-note">
-        <p class="launch-note-label">How to play</p>
-        <p class="launch-note-text">Every card is a direct link to the build's own file on GitHub Pages. Press Play and the game opens in a new tab, ready to go.</p>
-      </div>
-    </section>
-
-    <div class="indicator-bar" id="indicator-bar" aria-live="polite"></div>
-
-    <div class="workspace">
-      <div>
-        <p id="status" class="status">Loading catalog…</p>
-        <div id="grid" class="grid"></div>
-      </div>
-      <aside class="packs" aria-label="Texture packs">
-        <h2 class="packs-title">Texture packs</h2>
-        <p class="side-note">Download a zip, then open Options → Resource Packs in game and upload it. A 1.8.9 pack suits any 1.8 client, and a 1.20.6 pack suits the 1.20.6 build.</p>
-        <ul class="legend" aria-label="Pack indicators">
-          <li><span class="ind-dot ind-dot--ok" aria-hidden="true"></span> Fits the selected client</li>
-          <li><span class="ind-dot ind-dot--warn" aria-hidden="true"></span> Different Minecraft version</li>
-          <li><span class="ind-dot ind-dot--muted" aria-hidden="true"></span> No client selected yet</li>
-        </ul>
-        <div id="pack-list" class="pack-list"></div>
-      </aside>
     </div>
 
-    <footer class="foot">
-      <p><strong>EaglerHub</strong> is made by mr blob. Everything here is hosted statically on GitHub Pages — no servers, no accounts. Pick a game and play.</p>
-      <p><a href="https://github.com/mr-blobbb/EaglerHub" target="_blank" rel="noopener noreferrer">Source on GitHub</a></p>
-    </footer>
+    <div class="sidebar-footer">ランチャー 1.0</div>
   </div>
 
-  <script>
-const FALLBACK_FILES = [
-  { file: "Clients/Aero Client.html", category: "client", size: 41548077 },
-  { file: "Clients/Astra Client.html", category: "client", size: 59215320 },
-  { file: "Clients/EB Client 1.14.4.html", category: "client", size: 42176903 },
-  { file: "Clients/EB Client 1.8.8.html", category: "client", size: 22066113 },
-  { file: "Clients/Eclipse Client.html", category: "client", size: 46774872 },
-  { file: "Clients/GX-Client.html", category: "client", size: 26496650 },
-  { file: "Clients/Huzzium Client.html", category: "client", size: 15286205 },
-  { file: "Clients/Kozmo Client.html", category: "client", size: 67272908 },
-  { file: "Clients/Larp Client 1.14.4.html", category: "client", size: 44016899 },
-  { file: "Clients/Myven Client.html", category: "client", size: 84032731 },
-  { file: "Clients/Pixel Client.html", category: "client", size: 26494350 },
-  { file: "Clients/Precision Client.html", category: "client", size: 33679575 },
-  { file: "Clients/Resent Client.html", category: "client", size: 18825211 },
-  { file: "Clients/Tuff Client Beta.html", category: "client", size: 30871765 },
-  { file: "Vanilla/1.8.8-wasm.html", category: "vanilla", size: 15129081 },
-  { file: "Vanilla/1.12.2-wasm.html", category: "vanilla", size: 25066800 },
-  { file: "Vanilla/1.13.2-wasm.html", category: "vanilla", size: 54245378 },
-  { file: "Vanilla/1.14.4-wasm.html", category: "vanilla", size: 36011556 },
-  { file: "Vanilla/1.16.5-wasm.html", category: "vanilla", size: 53138875 },
-  { file: "Vanilla/1.20.6-wasm.html", category: "vanilla", size: 55586148 },
-  { file: "Vanilla/1.21.11-wasm.html", category: "vanilla", size: 48845015 },
-  { file: "Vanilla/26.1.2-wasm.html", category: "vanilla", size: 65694755 },
-  { file: "Vanilla/26.2-wasm.html", category: "vanilla", size: 75432618 },
-];
+  <div class="main">
+    <div class="top-bar">
+      <h1 id="pageTitle">ホーム</h1>
+      <div class="actions">
+        全てのデバイスで無料のMinecraft体験を。
+      </div>
+    </div>
 
-const FALLBACK_PACKS = [
-  { file: "TexturePacks/Moxiez 16x_1.20.6.zip", version: "1.20.6", size: 25132930 },
-  { file: "TexturePacks/Moxiez 16x_1.8.9.zip", version: "1.8.9", size: 25037108 },
-  { file: "TexturePacks/Summer 16x_1.20.6.zip", version: "1.20.6", size: 20659648 },
-  { file: "TexturePacks/Summer 16x_1.8.9.zip", version: "1.8.9", size: 20672925 },
-];
+    <div class="page active" id="page-home">
+      <div class="home-content">
+        <div class="install-panel">
+          <div class="install-panel-header">インストール</div>
+          <ul class="install-list">
+            <li class="install-item selected" data-name="バニラ" data-icon="vanilla" data-type="vanilla">
+              <div class="install-icon vanilla">⛏️</div>
+              <div class="install-info">
+                <div class="name">バニラ</div>
+                <div class="version">基礎的なMinecraftのコピー</div>
+              </div>
+            </li>
+            <li class="install-item" data-name="クライアント" data-icon="Client" data-type="Client">
+              <div class="install-icon forge">🔥</div>
+              <div class="install-info">
+                <div class="name">クライアント</div>
+                <div class="version">Eaglercraftをさらに楽しく</div>
+              </div>
+            </li>
+          </ul>
+        </div>
 
-const TAB_KEY = "eagler.tab";
-const SEL_KEY = "eagler.selectedClient";
+        <div class="play-panel">
+          <div class="game-card">
+            <div class="game-icon" id="gameIcon">⛏️</div>
+            <div class="game-info">
+              <div class="game-name" id="gameName">Eaglercraft: Java Edition</div>
+              <div class="game-sub" id="gameSub">インストール: バニラ</div>
+              <div class="game-status"><span class="dot"></span> <span id="gameStatus">最新状態</span></div>
+            </div>
+          </div>
 
-// This site is served at https://mr-blobbb.github.io/EaglerHub/, and every build
-// lives in this same repository, so each card links straight to the file's own
-// URL — no fetching, no blobs, no about:blank.
-const BASE = "https://mr-blobbb.github.io/EaglerHub/";
+          <div class="version-row">
+            <label>バージョン:</label>
+            <select id="versionSelect"></select>
+          </div>
 
-function fileUrl(filePath) {
-  const encoded = String(filePath)
-    .replace(/\\/g, "/")
-    .split("/")
-    .filter(Boolean)
-    .map(encodeURIComponent)
-    .join("/");
-  return BASE + encoded;
-}
+          <div class="version-desc" id="versionDesc">
+            <div class="desc-title" id="descTitle"></div>
+            <div id="descBody"></div>
+          </div>
 
-const grid = document.getElementById("grid");
-const packList = document.getElementById("pack-list");
-const statusEl = document.getElementById("status");
-const search = document.getElementById("search");
-const indicatorBar = document.getElementById("indicator-bar");
-const searchWrap = document.getElementById("search-wrap");
-const countAll = document.getElementById("count-all");
-const countClient = document.getElementById("count-client");
-const countVanilla = document.getElementById("count-vanilla");
+          <button class="play-btn" id="playBtn">プレイ</button>
+          ヒント：ダッシュキーは最初から「R」になっていないものが多いです。Options→Controls...→Key Binds...→SprintをRにする
+        </div>
 
-let catalog = [];
-let packs = [];
-let selectedClientFile = "";
-let activeTab = localStorage.getItem(TAB_KEY) || "all";
+        
+      </div>
+    </div>
 
-function fileName(path) {
-  return String(path || "").replace(/\\/g, "/").split("/").pop();
-}
-
-function parseClientFile(entry) {
-  const file = String(entry.file || entry).replace(/\\/g, "/");
-  const size = entry.size || 0;
-  const filename = fileName(file);
-  const base = filename.replace(/\.html$/i, "");
-  const wasm = base.match(/^(.*)-wasm$/i);
-
-  if (wasm || entry.category === "vanilla") {
-    const version = wasm ? wasm[1] : base;
-    return {
-      file,
-      name: version,
-      category: "vanilla",
-      version,
-      tag: "Vanilla",
-      size,
-    };
-  }
-
-  let version = null;
-  let label = base.replace(/-/g, " ");
-  const versionMatch = label.match(/\b(\d+(?:\.\d+){1,3})\b/);
-  if (versionMatch) {
-    version = versionMatch[1];
-    label = label.replace(versionMatch[0], " ");
-  }
-  const beta = /\bbeta\b/i.test(label);
-  label = label.replace(/\bclient\b/gi, " ").replace(/\bbeta\b/gi, " ");
-  label = label.replace(/\s+/g, " ").trim() || base;
-
-  return {
-    file,
-    name: label,
-    category: "client",
-    version,
-    tag: beta ? "Client · Beta" : "Client",
-    size,
-  };
-}
-
-function parsePackFile(entry) {
-  const file = String(entry.file || entry).replace(/\\/g, "/");
-  const filename = fileName(file);
-  const base = filename.replace(/\.zip$/i, "");
-  const match = base.match(/^(.*?)[_ ](\d+(?:\.\d+){1,3})$/);
-  return {
-    file,
-    filename,
-    name: match ? match[1].replace(/_+/g, " ").trim() : base,
-    version: entry.version || (match ? match[2] : null),
-    size: entry.size || 0,
-  };
-}
-
-function versionParts(value) {
-  return String(value || "0")
-    .split(".")
-    .map((part) => Number.parseInt(part, 10) || 0);
-}
-
-function compareVersions(a, b) {
-  const left = versionParts(a);
-  const right = versionParts(b);
-  const len = Math.max(left.length, right.length);
-  for (let i = 0; i < len; i += 1) {
-    const delta = (left[i] || 0) - (right[i] || 0);
-    if (delta) return delta;
-  }
-  return 0;
-}
-
-function formatBytes(bytes) {
-  if (!Number.isFinite(bytes) || bytes <= 0) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function sortCatalog(items) {
-  return [...items].sort((a, b) => {
-    if (a.category !== b.category) return a.category === "client" ? -1 : 1;
-    if (a.category === "vanilla") return compareVersions(a.version, b.version);
-    return a.name.localeCompare(b.name);
-  });
-}
-
-function packFamily(version) {
-  if (!version) return null;
-  if (String(version).startsWith("1.8")) return "1.8";
-  return String(version);
-}
-
-function clientPackFamily(item) {
-  if (item?.version) return packFamily(item.version);
-  if (item?.category === "client") return "1.8";
-  return null;
-}
-
-function isPackCompatible(pack, client) {
-  const packVer = packFamily(pack.version);
-  const clientVer = clientPackFamily(client);
-  if (!packVer || !clientVer) return true;
-  return packVer === clientVer;
-}
-
-function selectedClient() {
-  return catalog.find((item) => item.file === selectedClientFile) || null;
-}
-
-function updateTabCounts(visibleCount) {
-  const clients = catalog.filter((item) => item.category === "client").length;
-  const vanilla = catalog.filter((item) => item.category === "vanilla").length;
-  if (countAll) countAll.textContent = String(catalog.length);
-  if (countClient) countClient.textContent = String(clients);
-  if (countVanilla) countVanilla.textContent = String(vanilla);
-  return { clients, vanilla, visibleCount };
-}
-
-function chip(label, value, tone = "") {
-  const el = document.createElement("span");
-  el.className = `chip${tone ? ` chip--${tone}` : ""}`;
-  el.innerHTML = `<span class="chip-label">${label}</span><span class="chip-value">${value}</span>`;
-  return el;
-}
-
-function renderIndicators(visibleCount) {
-  if (!indicatorBar) return;
-  indicatorBar.replaceChildren();
-
-  const query = search.value.trim();
-  const client = selectedClient();
-  const counts = updateTabCounts(visibleCount);
-
-  indicatorBar.append(chip("Showing", String(visibleCount)));
-  indicatorBar.append(chip("Tab", activeTab === "all" ? "All" : activeTab === "client" ? "Clients" : "Vanilla"));
-
-  if (query) {
-    indicatorBar.append(chip("Search", `"${query}"`, "accent"));
-  }
-
-  indicatorBar.append(chip("Host", "mr-blobbb.github.io/EaglerHub", "ok"));
-
-  if (client) {
-    indicatorBar.append(chip("Selected", client.name, "ok"));
-  } else {
-    indicatorBar.append(chip("Selected", "None", "muted"));
-  }
-
-  indicatorBar.append(chip("Packs", String(packs.length), "muted"));
-  indicatorBar.append(chip("Clients", String(counts.clients), "client"));
-  indicatorBar.append(chip("Vanilla", String(counts.vanilla), "vanilla"));
-
-  if (searchWrap) {
-    searchWrap.classList.toggle("has-filter", Boolean(query));
-  }
-}
-
-function setStatus(text) {
-  statusEl.classList.add("is-updating");
-  window.requestAnimationFrame(() => {
-    statusEl.textContent = text;
-    window.requestAnimationFrame(() => {
-      statusEl.classList.remove("is-updating");
-    });
-  });
-}
-
-function visibleItems() {
-  const query = search.value.trim().toLowerCase();
-  return catalog.filter((item) => {
-    if (activeTab !== "all" && item.category !== activeTab) return false;
-    if (!query) return true;
-    return `${item.name} ${item.tag} ${item.version || ""} ${item.file}`.toLowerCase().includes(query);
-  });
-}
-
-function renderPacks() {
-  packList.replaceChildren();
-  const client = selectedClient();
-
-  if (!packs.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty";
-    empty.textContent = "No texture pack zips found in TexturePacks.";
-    packList.append(empty);
-    return;
-  }
-
-  for (let i = 0; i < packs.length; i += 1) {
-    const pack = packs[i];
-    const compatible = !client || isPackCompatible(pack, client);
-    const link = document.createElement("a");
-    link.style.setProperty("--n", String(i));
-    const dotClass = !client ? "ind-dot--muted" : compatible ? "ind-dot--ok" : "ind-dot--warn";
-    const fitLabel = !client
-      ? "Select a client to check fit"
-      : compatible
-        ? "Fits the selected client"
-        : "Different Minecraft version";
-    link.className = `pack${compatible ? "" : " is-incompatible"}`;
-    link.href = fileUrl(pack.file);
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    link.innerHTML = `
-      <div class="pack-row">
-        <span class="ind-dot ${dotClass}" aria-hidden="true"></span>
-        <div class="pack-body">
-          <strong>${pack.name}</strong>
-          <span class="pack-meta">${pack.version || "?"} · ${formatBytes(pack.size)}</span>
-          <span class="pack-fit">${fitLabel}</span>
-          <span class="download-label">Download zip</span>
+    <div class="page" id="page-bedrock">
+      <div class="page-hero">
+        <div class="hero-icon" style="background:linear-gradient(135deg,#3a6b8c,#2a4a6a);">📦</div>
+        <div class="hero-text">
+          <h2>Minecraft for Windows</h2>
+          <p>すべてのデバイスでMinecraftをプレイ。PC、コンソール、モバイルでクロスプラットフォームマルチプレイヤーを楽しもう。</p>
         </div>
       </div>
-    `;
-    packList.append(link);
-  }
-}
+      <p><strong>1. — 銅の時代</strong><br>2025年9月12日</p>
+        <p>銅ゴーレムと新しい銅ツールを追加。クロスプラットフォーム対応の改善も。</p>
+        <hr style="border-color:#444; margin:12px 0;">
+        <p><strong>1.21.30 — アップデート</strong><br>2025年8月20日</p>
+        <p>パフォーマンス改善とバグ修正。モバイル対応の最適化。</p>
+        <hr style="border-color:#444; margin:12px 0;">
+        <p><strong>1.21.20 — アップデート</strong><br>2025年7月15日</p>
+        <p>新しいバイオーム「乾燥渓谷」を追加。新規モブ2種。</p>
+    </div>
+  </div>
 
-function render() {
-  const items = visibleItems();
-  grid.replaceChildren();
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2 id="modalTitle">タイトル</h2>
+      <div id="modalBody"></div>
+      <button class="modal-close" id="modalClose">閉じる</button>
+    </div>
+  </div>
 
-  if (!items.length) {
-    const empty = document.createElement("p");
-    empty.className = "empty";
-    empty.textContent = catalog.length
-      ? "No builds match that search."
-      : "No build files found in Clients or Vanilla.";
-    grid.append(empty);
-    setStatus("0 shown");
-    renderPacks();
-    renderIndicators(0);
-    return;
-  }
+  <div class="toast" id="toast"></div>
 
-  for (let i = 0; i < items.length; i += 1) {
-    const item = items[i];
-    const card = document.createElement("a");
-    card.style.setProperty("--n", String(Math.min(i, 14)));
-    const isSelected = item.file === selectedClientFile;
-    card.className = `card ${item.category}${isSelected ? " is-selected" : ""}`;
-    card.href = fileUrl(item.file);
-    card.target = "_blank";
-    card.rel = "noopener noreferrer";
-    card.setAttribute("aria-label", `Play ${item.name}`);
-    const dotClass = item.category === "vanilla" ? "ind-dot--vanilla" : "ind-dot--client";
-    const selectedMark = isSelected ? '<span class="card-flag">Selected</span>' : "";
-    card.innerHTML = `
-      <div class="card-top">
-        <span class="badge"><span class="ind-dot ${dotClass}" aria-hidden="true"></span>${item.tag}</span>
-        <span class="size">${formatBytes(item.size)}</span>
-      </div>
-      ${selectedMark}
-      <h2>${item.name}</h2>
-      <p class="meta">${item.category === "vanilla" ? "WASM build" : (item.version || "Custom client")}</p>
-      <span class="play">Play</span>
-    `;
-    // Remembering the last clicked build keeps the texture-pack fit hints useful
-    // after the game's tab comes back to this page.
-    card.addEventListener("click", () => {
-      if (selectedClientFile === item.file) return;
-      selectedClientFile = item.file;
-      localStorage.setItem(SEL_KEY, item.file);
-      window.setTimeout(render, 0);
+  <script>
+    const installVersions = {
+      vanilla: [
+        { value: '26.2', label: '26.2', desc: '最新のEaglercraft。サルファーキューブなどもあり、LAN公開が可能。' },
+        { value: '1.21.11', label: '1.21.11', desc: '槍のEaglercraft。実況で見慣れた型であり、LAN公開が可能。' },
+        { value: '1.20.6', label: '1.20.6', desc: '桜のEaglercraft。パチモンではないy以下もある型である。ラグい。LAN公開が可能。' },
+        { value: '1.14.4', label: '1.14.4', desc: '村のEaglercraft。書見台などの職業ブロックの追加。LAN公開や日本語設定が可能。' },
+        { value: '1.13.2', label: '1.13.2', desc: '海のEaglercraft。水に魚が泳ぎ始めるようになる。ラグい。LAN公開が可能。' },
+        { value: '1.12.2', label: '1.12.2', desc: '今までの最新。アスレチックが最も入っている型であり、LAN公開も日本語設定もできない。' },
+        { value: '1.8.8', label: '1.8.8', desc: '最初のEaglercraft。最も安定して遊べる型であり、LAN公開や日本語設定が可能。' }      ],
+      Client: [
+        { value: 'aero', label: 'aero Client', desc: '1.12のクライアント。MODとして様々なサブ機能（HitBoxなど）を追加できる。' },
+        { value: 'astra', label: 'Astra Client', desc: '1.6,0のクライアント。サクサク動く。' }
+      ] 
+    };
+<!-- { value: '1.8.8', label: '1.8.8', desc: '最初のEaglercraft。最も安定して遊べる型であり、LAN公開や日本語設定が可能。' }, -->
+    const versionURLs = {
+      vanilla: {
+        '26.2': 'https://www.minecraft.net/en-us/article/minecraft-1-21-4',
+        '1.21.11': 'https://www.minecraft.net/en-us/article/minecraft-1-21-4',
+        '1.20.6': 'https://www.minecraft.net/en-us/article/minecraft-1-21-4',
+        '1.14.4': 'https://www.minecraft.net/en-us/article/minecraft-1-21-3',
+        '1.13.2': 'https://www.minecraft.net/en-us/article/minecraft-1-21-2',
+        '1.12.2': 'https://www.minecraft.net/en-us/article/minecraft-1-21-1',
+        '1.8.8': 'https://www.minecraft.net/en-us/article/snapshot-25w35a'
+      },
+      forge: {
+        'aero': 'https://files.minecraftforge.net/net/minecraftforge/forge/index_1.20.4.html',
+        'astra': 'https://files.minecraftforge.net/net/minecraftforge/forge/index_1.18.2.html'
+      }
+    };
+
+    const state = {
+      ram: 4096,
+      directory: 'C:\\Users\\...\\AppData\\Roaming\\.minecraft',
+      java: 'Java 21（同梱）',
+      jvm: '-XX:+UseG1GC',
+      skin: '🧑',
+      bedrockSettings: { graphics: '高', crossplay: true, cloudSave: true, experimental: false }
+    };
+
+    let selectedInstall = { name: 'バニラ', icon: 'vanilla', type: 'vanilla' };
+    let currentPage = 'home';
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    const overlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    function openModal(title, html) {
+      modalTitle.textContent = title;
+      modalBody.innerHTML = html;
+      overlay.classList.add('show');
+      bindModalEvents();
+    }
+
+    function closeModal() { overlay.classList.remove('show'); }
+    document.getElementById('modalClose').addEventListener('click', closeModal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    const navItems = document.querySelectorAll('.nav-item');
+    const pageTitle = document.getElementById('pageTitle');
+    const pageTitles = { home: 'ホーム', bedrock: 'Minecraft for Windows' };
+
+    navItems.forEach(item => {
+      item.addEventListener('click', () => {
+        navItems.forEach(n => n.classList.remove('active'));
+        item.classList.add('active');
+        currentPage = item.dataset.page;
+        pageTitle.textContent = pageTitles[currentPage];
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + currentPage).classList.add('active');
+        showToast(`切り替え: ${pageTitles[currentPage]}`);
+      });
     });
-    grid.append(card);
-  }
 
-  setStatus(`${items.length} of ${catalog.length} builds shown`);
-  renderPacks();
-  renderIndicators(items.length);
-}
+    const versionSelect = document.getElementById('versionSelect');
+    const descTitle = document.getElementById('descTitle');
+    const descBody = document.getElementById('descBody');
 
-function bindTabs() {
-  document.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      activeTab = tab.dataset.tab;
-      localStorage.setItem(TAB_KEY, activeTab);
-      bindTabState();
-      render();
+    function populateVersions(type, defaultVer) {
+      const versions = installVersions[type] || installVersions.vanilla;
+      versionSelect.innerHTML = versions.map(v =>
+        `<option value="${v.value}" ${v.value === defaultVer ? 'selected' : ''}>${v.label}</option>`
+      ).join('');
+      updateVersionDesc(type, defaultVer);
+    }
+
+    function updateVersionDesc(type, ver) {
+      const versions = installVersions[type] || [];
+      const found = versions.find(v => v.value === ver);
+      if (found) {
+        descTitle.textContent = found.label;
+        descBody.textContent = found.desc;
+      } else {
+        descTitle.textContent = ver;
+        descBody.textContent = '説明なし。';
+      }
+    }
+
+    populateVersions('vanilla', '26.2');
+
+    const installItems = document.querySelectorAll('.install-item');
+    const gameIcon = document.getElementById('gameIcon');
+    const gameName = document.getElementById('gameName');
+    const gameSub = document.getElementById('gameSub');
+    const gameStatus = document.getElementById('gameStatus');
+    const iconMap = { vanilla: '⛏️', fabric: '🧵', Client: '🔥' };
+    const nameMap = { vanilla: 'Eaglercraft: Java Edition', Client: 'Eaglercraft: Client' };
+
+    installItems.forEach(item => {
+      item.addEventListener('click', () => {
+        installItems.forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        selectedInstall = { name: item.dataset.name, icon: item.dataset.icon, type: item.dataset.type };
+        gameIcon.textContent = iconMap[selectedInstall.icon] || '⛏️';
+        gameName.textContent = nameMap[selectedInstall.type] || 'Minecraft: Java Edition';
+        gameSub.textContent = `インストール: ${selectedInstall.name}`;
+        gameStatus.textContent = '最新状態';
+
+        const firstVer = (installVersions[selectedInstall.type] || [])[0];
+        populateVersions(selectedInstall.type, firstVer ? firstVer.value : '26.2');
+
+        showToast(`選択: ${selectedInstall.name}（${versionSelect.value}）`);
+      });
     });
-  });
-}
 
-function bindTabState() {
-  document.querySelectorAll(".tab").forEach((tab) => {
-    const selected = tab.dataset.tab === activeTab;
-    tab.classList.toggle("is-active", selected);
-    tab.setAttribute("aria-selected", String(selected));
-  });
-}
+    const playBtn = document.getElementById('playBtn');
+    playBtn.addEventListener('click', () => {
+      if (playBtn.classList.contains('loading')) return;
+      const type = selectedInstall.type;
+      const ver = versionSelect.value;
+      const url = (versionURLs[type] || {})[ver];
 
-function loadCatalog() {
-  catalog = sortCatalog(FALLBACK_FILES.map((entry) => parseClientFile(entry)));
-  packs = FALLBACK_PACKS.map((entry) => parsePackFile(entry));
-  const saved = localStorage.getItem(SEL_KEY);
-  if (saved && catalog.some((item) => item.file === saved)) {
-    selectedClientFile = saved;
-  }
-  render();
-}
+      playBtn.classList.add('loading');
+      playBtn.textContent = '起動中...';
+      gameStatus.textContent = '起動中...';
 
-bindTabs();
-bindTabState();
-search.addEventListener("input", render);
-loadCatalog();
+      setTimeout(() => {
+        playBtn.classList.remove('loading');
+        playBtn.textContent = 'プレイ';
+        gameStatus.textContent = '最新状態';
+
+        if (url) {
+          showToast(`${type} ${ver} → 開く`);
+          window.open(url, '_blank');
+        } else {
+          showToast(`「${type}」のバージョン ${ver} のURLが未設定です`);
+        }
+      }, 1500);
+    });
+
+    const newsData = {
+      '1': { title: 'Minecraft 1.21.4 — 銅の時代アップデート', body: '銅ゴーレム、新ツール、再設計された鍾乳洞エコシステム。銅の村で村民と交易しよう。' },
+      '2': { title: 'Minecraft Live 2025', body: 'サプライズ発表、開発者パネル、次回アップデートの予告を含むライブイベントのハイライト。' },
+      '3': { title: '1.21.4 パッチノート', body: 'バグ修正: 銅ゴーレムのパスファインディング、ネザーでの鍾乳石成長、チャンクロードパフォーマンス、197件以上の追加修正。' }
+    };
+
+    document.querySelectorAll('.news-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const d = newsData[card.dataset.news];
+        openModal(d.title, `<p>${d.body}</p>`);
+      });
+    });
+
+    function bindModalEvents() {
+      document.querySelectorAll('.skin-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          opt.parentElement.querySelectorAll('.skin-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+        });
+      });
+
+      document.querySelectorAll('.toggle').forEach(tgl => {
+        tgl.addEventListener('click', () => {
+          tgl.classList.toggle('on');
+          const key = tgl.dataset.key;
+          state.bedrockSettings[key] = tgl.classList.contains('on');
+          showToast(`${tgl.dataset.label}: ${tgl.classList.contains('on') ? 'ON' : 'OFF'}`);
+        });
+      });
+    }
+
   </script>
+
 </body>
-</html>
+</html>   
